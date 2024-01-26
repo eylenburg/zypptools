@@ -1,0 +1,88 @@
+#!/bin/bash
+# MIT license
+# github.com/eylenburg/zypptools
+
+function autoremove() {
+    echo -e "The packages listed below are unneeded as they were installed as dependencies of now removed packages:"
+
+    # List all unneeded packages
+    unneeded=$(zypper packages --unneeded | awk -F'|' 'NR==0 || NR==1 || NR==2 || NR==3 || NR==4 {next} {print $3}' | grep -v Name)
+    echo -e "\e[31m$unneeded\e[0m\n"
+
+    # Check if there is anything to remove
+    if [ -z "$unneeded" ]
+    then
+        echo "No packages to remove"
+    else
+
+    # Ask to remove unneeded packages
+        while true; do
+            read -p "Do you want to remove these  packages including their dependencies? [y/n] " yn
+            case $yn in
+                [Yy]* ) sudo zypper remove --clean-deps $unneeded;;
+                [Nn]* ) exit;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
+    }
+
+
+function userinstalled() {
+    # Make the zypper history file available to the user
+    sudo cat /var/log/zypp/history > /tmp/history
+
+    # Read list of all packages installed by the user
+    command_output=$(grep '|root@'`hostname` /tmp/history | grep '|install|' | sort -r | cut -d'|' -f3)
+
+    echo -e "The packages listed below were manually installed by a user. This list does not include preinstalled packages or packages that were installed as dependencies or recommendations. If you want to remove a package including its dependencies, you can use the command \033[3msudo zypper remove --clean-deps <package>\033[0m\n"
+
+    # Compare the above list to the list of currently installed packages
+    comm -12 <(echo "$command_output" | sort) <(echo "$command_output" | xargs zypper search -i | grep "^i" | awk '{print $3}' | sort)
+
+    # Remove the temporary file
+    rm /tmp/history
+}
+
+package=$2
+function why() {
+    if [ -z "$package" ]
+    then
+        echo "Please specify a package name: zypptools why <package>"
+    else
+        echo "Showing all currently installed packages that require or recommend the specified package:"
+        zypper search --recommends --requires $package | grep -E '^i'
+    fi
+}
+
+
+function ban() {
+    if [ -z "$package" ]
+    then
+        echo "Please specify a package name: zypptools why <package>"
+    else
+        # Remove package and set as taboo
+        sudo zypper remove --clean-deps $package && sudo zypper addlock $package
+    fi
+}
+
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    case $1 in
+    "userinstalled")
+        userinstalled
+        ;;
+    "autoremove")
+        autoremove
+        ;;
+    "why")
+        why
+        ;;
+    "ban")
+        ban
+        ;;
+    *)
+        echo -e "Invalid function name. Please specify a valid function to run:\n\033[4mzypptools userinstalled\033[0m - list all packages that were manually installed by the user\n\033[4mzypptools autoremove\033[0m - find and remove unneeded dependencies\n\033[4mzypptools why package\033[0m - list all installed packages that require or recommend the specified package\n\033[4mzypptools ban package\033[0m - uninstall the package including its dependencies and prevent reinstallation (as a dependency of another package or pattern)\n\033[3mzypptools v1.0\033[0m"
+        ;;
+    esac
+fi
