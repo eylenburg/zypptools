@@ -19,7 +19,7 @@ function autoremove() {
         while true; do
             read -p "Do you want to remove these  packages including their dependencies? [y/n] " yn
             case $yn in
-                [Yy]* ) sudo zypper remove --clean-deps $unneeded;;
+                [Yy]* ) sudo zypper remove --clean-deps $unneeded && break;;
                 [Nn]* ) exit;;
                 * ) echo "Please answer yes or no.";;
             esac
