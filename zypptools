@@ -82,7 +82,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         ban
         ;;
     *)
-        echo -e "Invalid function name. Please specify a valid function to run:\n\033[4mzypptools userinstalled\033[0m - list all packages that were manually installed by the user\n\033[4mzypptools autoremove\033[0m - find and remove unneeded dependencies\n\033[4mzypptools why package\033[0m - list all installed packages that require or recommend the specified package\n\033[4mzypptools ban package\033[0m - uninstall the package including its dependencies and prevent reinstallation (as a dependency of another package or pattern)\n\033[3mzypptools v1.0\033[0m"
+        echo -e "Invalid function name. Please specify a valid function to run:\n\033[4mzypptools userinstalled\033[0m - list all packages that were manually installed by the user\n\033[4mzypptools autoremove\033[0m - find and remove unneeded dependencies\n\033[4mzypptools why package\033[0m - list all installed packages that require or recommend the specified package\n\033[4mzypptools ban package\033[0m - uninstall the package including its dependencies and prevent reinstallation (as a dependency of another package or pattern)\n\033[3mzypptools v1.1\033[0m"
         ;;
     esac
 fi
